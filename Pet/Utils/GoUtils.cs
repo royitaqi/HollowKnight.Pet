@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -36,9 +37,22 @@ internal static class GoUtils
         return go.GetComponents<T>().First(c => which == null || which(c));
     }
 
+    public static IEnumerable<T> GetComponents<T>(this GameObject go, Func<T, bool> which) where T : Component
+    {
+        return go.GetComponents<T>().Where(c => which == null || which(c));
+    }
+
     public static void RemoveComponent<T>(this GameObject go, Func<T, bool> which = null) where T : Component
     {
         var c = go.GetComponent<T>(which);
         UObject.DestroyImmediate(c);
+    }
+
+    public static void RemoveComponents<T>(this GameObject go, Func<T, bool> which = null) where T : Component
+    {
+        foreach (var c in go.GetComponents<T>(which))
+        {
+            UObject.DestroyImmediate(c);
+        }
     }
 }
