@@ -19,6 +19,7 @@ internal class Shade
         GameObject.DontDestroyOnLoad(shade);
         shade.transform.position = position;
         shade.transform.SetScaleMatching(0.5f);
+        shade.Find("Shade Particles").GetComponent<ParticleSystem>().scalingMode = ParticleSystemScalingMode.Hierarchy;
         shade.GetComponent<AudioSource>().enabled = false;
         shade.RemoveComponents<HealthManager>();
 
