@@ -68,11 +68,14 @@ namespace Pet
                 _shade = Shade.Create(HeroController.instance.transform.position + new Vector3(4, 4, 0));
 
                 var fsm = _shade.GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Shade Control");
-                var fly = fsm.GetState("Friendly Idle");
-                fly.Actions = new FsmStateAction[] { };
+                var change = fsm.AddState("Pet Change");
+                var follow = fsm.AddState("Pet Follow");
+                fsm.AddTransition("Pet Change", "FINISHED", "Pet Follow");
+                fsm.AddTransition("Pet Follow", "FINISHED", "Pet Change");
+                fsm.AddTransition("Friendly Idle", "FINISHED", "Pet Change");
 
                 var ownerDefaultFsmOwner = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner, GameObject = _shade };
-                var heroOD = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner, GameObject = HeroController.instance.gameObject };
+                var shadeGO = new FsmGameObject { Value = _shade };
                 var heroGO = new FsmGameObject { Value = HeroController.instance.gameObject };
                 var distance = fsm.GetFloatVariable("Distance");
                 var speed = fsm.GetFloatVariable("Speed");
@@ -82,14 +85,26 @@ namespace Pet
                 var radius = fsm.GetFloatVariable("Radius");
                 var offset = fsm.GetVector3Variable("Offset");
 
-                // --- Change
+                // --- Friendly Idle
 
-                fly.AddMethod(() =>
+                fsm.GetState("Friendly Idle").AddAction(new SendEventByName
+                {
+                    eventTarget = FsmEventTarget.Self,
+                    sendEvent = "FINISHED",
+                    delay = 0f,
+                    everyFrame = false,
+                });
+
+
+                // --- Pet Change
+
+                change.AddMethod(() =>
                 {
                     // 1
                     var offsetX = 2f;
                     // 2
                     var heroScale = HeroController.instance.gameObject.transform.GetScaleX();
+                    this.LogModDebug($"heroScale = {heroScale}");
                     // 3
                     offsetX *= heroScale;
                     // 4
@@ -100,10 +115,10 @@ namespace Pet
                     radius.Value = 0.25f;
                 });
 
-                // --- Follow
+                // --- Pet Follow
 
                 // 1
-                fly.AddAction(new SetRotation
+                follow.AddAction(new SetRotation
                 {
                     gameObject = ownerDefaultFsmOwner,
                     quaternion = new Quaternion(0, 0, 0, 0),
@@ -117,16 +132,16 @@ namespace Pet
                 });
 
                 // 4
-                fly.AddAction(new SetCircleCollider
+                follow.AddAction(new SetCircleCollider
                 {
                     gameObject = ownerDefaultFsmOwner,
                     active = true,
                 });
 
                 // 5
-                fly.AddAction(new GrimmChildFly
+                follow.AddAction(new GrimmChildFly
                 {
-                    objectA = new FsmGameObject { Value = _shade },
+                    objectA = shadeGO,
                     objectB = heroGO,
                     spriteFacesRight = false, // shade is different than grimmchild
                     playNewAnimation = true,
@@ -139,7 +154,7 @@ namespace Pet
                 });
 
                 // 6
-                fly.AddAction(new GetDistance
+                follow.AddAction(new GetDistance
                 {
                     gameObject = ownerDefaultFsmOwner,
                     target = heroGO,
@@ -148,7 +163,7 @@ namespace Pet
                 });
 
                 // 7
-                fly.AddAction(new FloatMultiply
+                follow.AddAction(new FloatMultiply
                 {
                     floatVariable = distance,
                     multiplyBy = 1.15f,
@@ -156,7 +171,7 @@ namespace Pet
                 });
 
                 // 8
-                fly.AddAction(new FloatTestToBool
+                follow.AddAction(new FloatTestToBool
                 {
                     float1 = distance,
                     float2 = 10f,
@@ -168,7 +183,7 @@ namespace Pet
                 });
 
                 // 9
-                fly.AddAction(new FloatOperator
+                follow.AddAction(new FloatOperator
                 {
                     float1 = distance,
                     float2 = 4f,
@@ -178,7 +193,7 @@ namespace Pet
                 });
 
                 // 10
-                fly.AddAction(new FloatClamp
+                follow.AddAction(new FloatClamp
                 {
                     floatVariable = speed,
                     minValue = 4f,
@@ -187,7 +202,7 @@ namespace Pet
                 });
 
                 // 11
-                fly.AddAction(new DistanceFlySmooth
+                follow.AddAction(new DistanceFlySmooth
                 {
                     gameObject = ownerDefaultFsmOwner,
                     target = heroGO,
@@ -200,7 +215,7 @@ namespace Pet
                 });
 
                 // 12
-                fly.AddAction(new GetPosition
+                follow.AddAction(new GetPosition
                 {
                     gameObject = ownerDefaultFsmOwner,
                     vector = fsm.GetVector3Variable("Self Pos"),
@@ -212,7 +227,7 @@ namespace Pet
                 });
 
                 // 13
-                fly.AddAction(new FloatAddV2
+                follow.AddAction(new FloatAddV2
                 {
                     floatVariable = awayTimer,
                     add = 1f,
@@ -223,7 +238,7 @@ namespace Pet
                 });
 
                 // 14
-                fly.AddAction(new SetBoolValue
+                follow.AddAction(new SetBoolValue
                 {
                     boolVariable = notAway,
                     boolValue = away,
@@ -231,14 +246,14 @@ namespace Pet
                 });
 
                 // 15
-                fly.AddAction(new BoolFlipEveryFrame
+                follow.AddAction(new BoolFlipEveryFrame
                 {
                     boolVariable = notAway,
                     everyFrame = true,
                 });
 
                 // 16
-                fly.AddAction(new SetFloatValueV2
+                follow.AddAction(new SetFloatValueV2
                 {
                     floatVariable = awayTimer,
                     floatValue = 0f,
@@ -246,15 +261,13 @@ namespace Pet
                     activeBool = notAway,
                 });
 
-                //// 17
-                //fly.AddAction(new FloatCompare
-                //{
-                //    float1 = awayTimer,
-                //    float2 = 2f,
-                //    tolerance = 0f,
-                //    greaterThan = fsm.FsmEvents.First(e => e.Name == "TELE"),
-                //    everyFrame = true,
-                //});
+                // 18
+                follow.AddAction(new Wait
+                {
+                    time = 0.25f,
+                    realTime = false,
+                    finishEvent = FsmEvent.Finished,
+                });
 
                 this.LogModDebug("Shade created and actions added");
             }
