@@ -72,6 +72,11 @@ namespace Pet
 
                 var ownerDefaultFsmOwner = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner, GameObject = _shade };
                 var hero = new FsmGameObject { Value = HeroController.instance.gameObject };
+                var distance = fsm.GetFloatVariable("Distance");
+                var speed = fsm.GetFloatVariable("Speed");
+                var away = fsm.GetBoolVariable("Away");
+                var notAway = fsm.GetBoolVariable("Not Away");
+                var awayTimer = fsm.GetFloatVariable("Away Timer");
 
                 // 1
                 fly.AddAction(new SetRotation
@@ -112,14 +117,14 @@ namespace Pet
                 {
                     gameObject = ownerDefaultFsmOwner,
                     target = hero,
-                    storeResult = fsm.GetFloatVariable("Distance"),
+                    storeResult = distance,
                     everyFrame = true,
                 });
 
                 // 7
                 fly.AddAction(new FloatMultiply
                 {
-                    floatVariable = fsm.GetFloatVariable("Distance"),
+                    floatVariable = distance,
                     multiplyBy = 1.15f,
                     everyFrame = true,
                 });
@@ -127,29 +132,29 @@ namespace Pet
                 // 8
                 fly.AddAction(new FloatTestToBool
                 {
-                    float1 = fsm.GetFloatVariable("Distance"),
+                    float1 = distance,
                     float2 = 10f,
                     tolerance = 0f,
                     equalBool = false,
                     lessThanBool = false,
-                    greaterThanBool = fsm.GetBoolVariable("Away"),
+                    greaterThanBool = away,
                     everyFrame = true,
                 });
 
                 // 9
                 fly.AddAction(new FloatOperator
                 {
-                    float1 = fsm.GetFloatVariable("Distance"),
+                    float1 = distance,
                     float2 = 4f,
                     operation = 0,
-                    storeResult = fsm.GetFloatVariable("Speed"),
+                    storeResult = speed,
                     everyFrame = true,
                 });
 
                 // 10
                 fly.AddAction(new FloatClamp
                 {
-                    floatVariable = fsm.GetFloatVariable("Speed"),
+                    floatVariable = speed,
                     minValue = 4f,
                     maxValue = 18f,
                     everyFrame = true,
@@ -161,7 +166,7 @@ namespace Pet
                     gameObject = ownerDefaultFsmOwner,
                     target = hero,
                     distance = 0,
-                    speedMax = fsm.GetFloatVariable("Speed"),
+                    speedMax = speed,
                     accelerationForce = 50f,
                     targetRadius = fsm.GetFloatVariable("Radius"),
                     deceleration = 0.9f,
@@ -183,42 +188,42 @@ namespace Pet
                 // 13
                 fly.AddAction(new FloatAddV2
                 {
-                    floatVariable = fsm.GetFloatVariable("Away Timer"),
+                    floatVariable = awayTimer,
                     add = 1f,
                     everyFrame = true,
                     perSecond = true,
                     fixedUpdate = false,
-                    activeBool = fsm.GetBoolVariable("Away"),
+                    activeBool = away,
                 });
 
                 // 14
                 fly.AddAction(new SetBoolValue
                 {
-                    boolVariable = fsm.GetBoolVariable("Not Away"),
-                    boolValue = fsm.GetBoolVariable("Away"),
+                    boolVariable = notAway,
+                    boolValue = away,
                     everyFrame = true,
                 });
 
                 // 15
                 fly.AddAction(new BoolFlipEveryFrame
                 {
-                    boolVariable = fsm.GetBoolVariable("Not Away"),
+                    boolVariable = notAway,
                     everyFrame = true,
                 });
 
                 // 16
                 fly.AddAction(new SetFloatValueV2
                 {
-                    floatVariable = fsm.GetFloatVariable("Away Timer"),
+                    floatVariable = awayTimer,
                     floatValue = 0f,
                     everyFrame = true,
-                    activeBool = fsm.GetBoolVariable("Not Away"),
+                    activeBool = notAway,
                 });
 
                 //// 17
                 //fly.AddAction(new FloatCompare
                 //{
-                //    float1 = fsm.GetFloatVariable("Away Timer"),
+                //    float1 = awayTimer,
                 //    float2 = 2f,
                 //    tolerance = 0f,
                 //    greaterThan = fsm.FsmEvents.First(e => e.Name == "TELE"),
