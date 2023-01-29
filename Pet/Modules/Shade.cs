@@ -18,6 +18,7 @@ internal class Shade
         GameObject.DontDestroyOnLoad(shade);
         shade.transform.position = position;
         shade.transform.SetScaleMatching(0.5f);
+        shade.GetComponent<AudioSource>().enabled = false;
 
         ModifyShadeFsm(shade);
 
