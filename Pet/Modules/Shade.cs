@@ -53,11 +53,14 @@ internal class Shade
         var fsm = shade.GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Shade Control");
         var change = fsm.AddState("Pet Change");
         var follow = fsm.AddState("Pet Follow");
+        var tele = fsm.AddState("Pet Tele");
+        fsm.AddTransition("Friendly Idle", "FINISHED", "Pet Change");
         fsm.AddTransition("Pet Change", "FINISHED", "Pet Follow");
         fsm.AddTransition("Pet Follow", "FINISHED", "Pet Change");
-        fsm.AddTransition("Friendly Idle", "FINISHED", "Pet Change");
+        fsm.AddTransition("Pet Follow", "TELE", "Pet Tele");
+        fsm.AddTransition("Pet Tele", "FINISHED", "Pet Change");
 
-        var ownerDefaultFsmOwner = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner, GameObject = shade };
+        var shadeOD = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner, GameObject = shade };
         var shadeGO = new FsmGameObject { Value = shade };
         var heroGO = new FsmGameObject { Value = HeroController.instance.gameObject };
         var distance = fsm.GetFloatVariable("Distance");
@@ -127,7 +130,7 @@ internal class Shade
         // 1
         follow.AddAction(new SetRotation
         {
-            gameObject = ownerDefaultFsmOwner,
+            gameObject = shadeOD,
             quaternion = new Quaternion(0, 0, 0, 0),
             vector = new Vector3(0, 0, 0),
             xAngle = 0,
@@ -141,7 +144,7 @@ internal class Shade
         // 4
         follow.AddAction(new SetCircleCollider
         {
-            gameObject = ownerDefaultFsmOwner,
+            gameObject = shadeOD,
             active = true,
         });
 
@@ -163,7 +166,7 @@ internal class Shade
         // 6
         follow.AddAction(new GetDistance
         {
-            gameObject = ownerDefaultFsmOwner,
+            gameObject = shadeOD,
             target = heroGO,
             storeResult = distance,
             everyFrame = true,
@@ -211,7 +214,7 @@ internal class Shade
         // 11
         follow.AddAction(new DistanceFlySmooth
         {
-            gameObject = ownerDefaultFsmOwner,
+            gameObject = shadeOD,
             target = heroGO,
             distance = 0,
             speedMax = speed,
@@ -224,7 +227,7 @@ internal class Shade
         // 12
         follow.AddAction(new GetPosition
         {
-            gameObject = ownerDefaultFsmOwner,
+            gameObject = shadeOD,
             vector = fsm.GetVector3Variable("Self Pos"),
             x = 0f,
             y = 0f,
@@ -268,6 +271,16 @@ internal class Shade
             activeBool = notAway,
         });
 
+        // 17
+        follow.AddAction(new FloatCompare
+        {
+            float1 = awayTimer,
+            float2 = 2f,
+            tolerance = 0f,
+            greaterThan = FsmEvent.GetFsmEvent("TELE"),
+            everyFrame = true,
+        });
+
         // 18
         follow.AddAction(new Wait
         {
@@ -275,6 +288,16 @@ internal class Shade
             realTime = false,
             finishEvent = FsmEvent.Finished,
         });
+
+        // --- Pet Tele
+
+        tele.AddMethod(() =>
+        {
+            var pos = HeroController.instance.transform.position;
+            shade.transform.position = pos;
+        });
+
+        tele.AddAction(new NextFrameEvent());
     }
 
     private static void RemoveShadeFsm(GameObject shade)
