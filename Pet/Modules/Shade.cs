@@ -19,6 +19,7 @@ internal class Shade
         shade.transform.position = position;
         shade.transform.SetScaleMatching(0.5f);
         shade.GetComponent<AudioSource>().enabled = false;
+        shade.RemoveComponents<HealthManager>();
 
         ModifyShadeFsm(shade);
 
