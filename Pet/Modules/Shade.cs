@@ -13,6 +13,7 @@ internal class Shade
         GameObject.DontDestroyOnLoad(shade);
         //shade.name = go.name;
         shade.transform.position = position;
+        shade.transform.SetScaleMatching(0.5f);
 
         //typeof(Shade).LogModDebug("Removing shade's fsm");
         //RemoveShadeFsm(shade);
