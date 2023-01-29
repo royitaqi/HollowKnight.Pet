@@ -277,7 +277,7 @@ internal class Shade
             float1 = awayTimer,
             float2 = 2f,
             tolerance = 0f,
-            greaterThan = FsmEvent.GetFsmEvent("TELE"),
+            greaterThan = FsmEvent.GetFsmEvent("ZERO HP"), // FsmEvent.GetFsmEvent("TELE"),
             everyFrame = true,
         });
 
