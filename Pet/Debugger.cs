@@ -4,6 +4,7 @@ using Modding;
 using Pet.Modules;
 using Pet.Utils;
 using SFCore.Utils;
+using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -42,21 +43,20 @@ namespace Pet
         #region Playground
         private void EachFsmAtStart(PlayMakerFSM fsm)
         {
-            if (fsm is
-                {
-                    name: "Knight",
-                    FsmName: "Dream Nail"
-                })
+            var isKnightDreamNail = (PlayMakerFSM fsm) => fsm is
             {
-                this.LogModDebug("Hooked FSM: Knight-Dream Nail");
-                fsm.MakeLog();
-            }
+                name: "Knight",
+                FsmName: "Dream Nail",
+            };
 
-            if ((fsm.name == "Hollow Shade" || fsm.name == "Hollow Shade(Clone)" || fsm.name == "Grimmchild")
-                && (fsm.FsmName == "Shade Control" || fsm.FsmName == "Control"))
+            var isShadeControl = (PlayMakerFSM fsm) =>
+                (fsm.name == "Hollow Shade" || fsm.name == "Hollow Shade(Clone)" || fsm.name == "Grimmchild" || fsm.name == "Grimmchild(Clone)")
+                && (fsm.FsmName == "Shade Control" || fsm.FsmName == "Control");
+
+            if (isKnightDreamNail(fsm) || isShadeControl(fsm))
             {
                 this.LogModDebug($"Hooked FSM: {fsm.name}-{fsm.FsmName}");
-                fsm.MakeLog();
+                fsm.MakeLog(true);
             }
         }
 
@@ -64,6 +64,7 @@ namespace Pet
         {
             if (KeyboardOverride.GetKeyDown(KeyCode.Alpha9))
             {
+                this.LogModDebug("Creating shade");
                 _shade = Shade.Create(HeroController.instance.transform.position + new Vector3(4, 4, 0));
 
                 var fsm = _shade.GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Shade Control");
@@ -71,12 +72,35 @@ namespace Pet
                 fly.Actions = new FsmStateAction[] { };
 
                 var ownerDefaultFsmOwner = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner, GameObject = _shade };
-                var hero = new FsmGameObject { Value = HeroController.instance.gameObject };
+                var heroOD = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner, GameObject = HeroController.instance.gameObject };
+                var heroGO = new FsmGameObject { Value = HeroController.instance.gameObject };
                 var distance = fsm.GetFloatVariable("Distance");
                 var speed = fsm.GetFloatVariable("Speed");
                 var away = fsm.GetBoolVariable("Away");
                 var notAway = fsm.GetBoolVariable("Not Away");
                 var awayTimer = fsm.GetFloatVariable("Away Timer");
+                var radius = fsm.GetFloatVariable("Radius");
+                var offset = fsm.GetVector3Variable("Offset");
+
+                // --- Change
+
+                fly.AddMethod(() =>
+                {
+                    // 1
+                    var offsetX = 2f;
+                    // 2
+                    var heroScale = HeroController.instance.gameObject.transform.GetScaleX();
+                    // 3
+                    offsetX *= heroScale;
+                    // 4
+                    var offsetY = UnityEngine.Random.Range(1.85f, 2f);
+                    // 5
+                    offset.Value = new Vector3(offsetX, offsetY, 0);
+                    // 6
+                    radius.Value = 0.25f;
+                });
+
+                // --- Follow
 
                 // 1
                 fly.AddAction(new SetRotation
@@ -88,6 +112,8 @@ namespace Pet
                     yAngle = 0,
                     zAngle = 0,
                     space = 0,
+                    everyFrame = false,
+                    lateUpdate = false,
                 });
 
                 // 4
@@ -101,7 +127,7 @@ namespace Pet
                 fly.AddAction(new GrimmChildFly
                 {
                     objectA = new FsmGameObject { Value = _shade },
-                    objectB = hero,
+                    objectB = heroGO,
                     spriteFacesRight = false, // shade is different than grimmchild
                     playNewAnimation = true,
                     newAnimationClip = "Fly",
@@ -116,7 +142,7 @@ namespace Pet
                 fly.AddAction(new GetDistance
                 {
                     gameObject = ownerDefaultFsmOwner,
-                    target = hero,
+                    target = heroGO,
                     storeResult = distance,
                     everyFrame = true,
                 });
@@ -164,13 +190,13 @@ namespace Pet
                 fly.AddAction(new DistanceFlySmooth
                 {
                     gameObject = ownerDefaultFsmOwner,
-                    target = hero,
+                    target = heroGO,
                     distance = 0,
                     speedMax = speed,
                     accelerationForce = 50f,
-                    targetRadius = fsm.GetFloatVariable("Radius"),
+                    targetRadius = radius,
                     deceleration = 0.9f,
-                    offset = fsm.GetVector3Variable("Offset"),
+                    offset = offset,
                 });
 
                 // 12
@@ -229,6 +255,8 @@ namespace Pet
                 //    greaterThan = fsm.FsmEvents.First(e => e.Name == "TELE"),
                 //    everyFrame = true,
                 //});
+
+                this.LogModDebug("Shade created and actions added");
             }
         }
 
