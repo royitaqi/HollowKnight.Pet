@@ -36,9 +36,30 @@ namespace Pet
             return $"{ver}-{hash.Substring(0, 6)}";
         });
 
+        public override List<ValueTuple<string, string>> GetPreloadNames()
+        {
+            return new List<ValueTuple<string, string>>
+            {
+                //("Deepnest_East_07","Hollow Shade"),
+            };
+        }
+
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
             Log($"Initializing mod {GetVersion()}");
+
+            if (preloadedObjects != null)
+            {
+                this.LogModDebug("Preloaded objects:");
+                foreach (var scene in preloadedObjects.Keys)
+                {
+                    this.LogModDebug($"    - {scene}");
+                    foreach (var name in preloadedObjects[scene].Keys)
+                    {
+                        this.LogModDebug($"        - {name}");
+                    }
+                }
+            }
 
             // logger
             Instance = this;
