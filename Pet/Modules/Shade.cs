@@ -79,8 +79,8 @@ internal class Shade
                 intValue = 4,
                 everyFrame = false,
             },
-            After = typeof(GetPlayerDataInt),
             Named = "Pet Be Friendly",
+            After = typeof(GetPlayerDataInt),
         });
 
         // --- Friendly Idle
