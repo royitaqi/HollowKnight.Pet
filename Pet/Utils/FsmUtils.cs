@@ -1,7 +1,7 @@
-using System;
-using System.Linq;
 using HutongGames.PlayMaker;
 using SFCore.Utils;
+using System;
+using System.Linq;
 
 namespace Pet.Utils
 {
@@ -33,6 +33,64 @@ namespace Pet.Utils
         public static int FindActionIndexByType(this FsmState state, Type actionType)
         {
             return state.Actions.Select((a, i) => new { a, i }).First(ai => ai.a.GetType() == actionType).i;
+        }
+
+
+        internal class InsertParam
+        {
+            // what to insert
+            public Action Method { get; set; }
+            public FsmStateAction Action { get; set; }
+            // tag
+            public string Named { get; set; }
+            // index/delta
+            public int At { get; set; }
+            // ref
+            public Type After { get; set; }
+            public Type Before { get; set; }
+        }
+        public static FsmStateAction Insert(this FsmState state, InsertParam param)
+        {
+            ModAssert.AllBuilds(param.Before == null || param.After == null, "Before and After cannot be nonnull at the same time");
+            ModAssert.AllBuilds(param.Method == null || param.Action == null, "Method and Action cannot be nonnull at the same time");
+            ModAssert.AllBuilds(param.Method != null || param.Action != null, "Method and Action cannot be null at the same time");
+
+            // index
+            int index = 0;
+            if (param.Before != null)
+            {
+                index = state.FindActionIndexByType(param.Before) - param.At;
+            }
+            else if (param.After != null)
+            {
+                index = state.FindActionIndexByType(param.After) + 1 + param.At;
+            }
+            else
+            {
+                index = param.At;
+            }
+
+            // insert
+            if (param.Method != null)
+            {
+                state.InsertMethod(param.Method, index);
+            }
+            else if (param.Action != null)
+            {
+                state.InsertAction(param.Action, index);
+            }
+            else
+            {
+                throw new ModException("Should never arrive here");
+            }
+
+            // name
+            if (param.Named != null)
+            {
+                state.Actions[index].Name = param.Named;
+            }
+
+            return state.Actions[index];
         }
     }
 

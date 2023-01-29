@@ -2,6 +2,7 @@
 using HutongGames.PlayMaker.Actions;
 using Pet.Utils;
 using SFCore.Utils;
+using System.Linq;
 using UnityEngine;
 using UObject = UnityEngine.Object;
 
@@ -66,6 +67,21 @@ internal class Shade
         var radius = fsm.GetFloatVariable("Radius");
         var offset = fsm.GetVector3Variable("Offset");
 
+        // --- Friendly?
+
+        var friendly = fsm.GetState("Friendly?");
+        friendly.Insert(new FsmUtils.InsertParam
+        {
+            Action = new SetIntValue
+            {
+                intVariable = fsm.GetIntVariable("Royal Charm State"),
+                intValue = 4,
+                everyFrame = false,
+            },
+            After = typeof(GetPlayerDataInt),
+            Named = "Pet Be Friendly",
+        });
+
         // --- Friendly Idle
 
         fsm.GetState("Friendly Idle").AddAction(new SendEventByName
@@ -75,7 +91,6 @@ internal class Shade
             delay = 0f,
             everyFrame = false,
         });
-
 
         // --- Pet Change
 
