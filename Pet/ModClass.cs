@@ -71,6 +71,7 @@ namespace Pet
             ModDisplay.Instance = new ModDisplay();
 
             // hooks
+            HookUtils.Load();
 
             // input overrides
             KeyboardOverride.Load();
@@ -102,6 +103,7 @@ namespace Pet
             KeyboardOverride.Unload();
 
             // hooks
+            HookUtils.Unload();
 
             // display
             if (ModDisplay.Instance != null)

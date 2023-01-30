@@ -11,7 +11,7 @@ namespace Pet
 
         public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggle)
         {
-            _menuRef = new Menu("Boss Attacks", new Element[]
+            _menuRef = new Menu(Instance.Name, new Element[]
             {
                 toggle!.Value.CreateToggle(
                     "Mod",
@@ -41,7 +41,7 @@ namespace Pet
 #endif
             });
 
-            _menuRef.SetMenuButtonNameAndDesc(Pet.Instance, "Boss Attacks");
+            _menuRef.SetMenuButtonNameAndDesc(Instance, Instance.Name);
             return _menuRef.GetMenuScreen(modListMenu);
         }
 
