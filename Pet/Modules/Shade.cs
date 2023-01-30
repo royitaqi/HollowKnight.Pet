@@ -18,22 +18,21 @@ internal class Shade
     {
         this.LogMod("Load()");
         IsLoaded = true;
+
+        // hooks
         ModHooks.HeroUpdateHook += OnUpdate;
     }
 
     internal void Unload()
     {
         this.LogMod("Unload()");
-        ModHooks.HeroUpdateHook -= OnUpdate;
         IsLoaded = false;
-        Reset();
-    }
 
-    private void Reset()
-    {
-        this.LogModFine("Reset()");
+        // hooks
+        ModHooks.HeroUpdateHook -= OnUpdate;
+
+        // objects
         _spawnCooldown = null;
-
         if (_shade != null)
         {
             UObject.DestroyImmediate(_shade);
@@ -49,7 +48,7 @@ internal class Shade
         // not in a game
         if (GameManager.instance == null || HeroController.instance == null)
         {
-            Reset();
+            Unload();
             return;
         }
 
