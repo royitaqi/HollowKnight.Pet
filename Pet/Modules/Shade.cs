@@ -20,7 +20,7 @@ internal class Shade
         IsLoaded = true;
 
         // per-game hooks
-        GameUtils.OnHeroUpdate += OnUpdate;
+        GameUtils.OnHeroUpdate += OnHeroUpdate;
     }
 
     internal void Unload()
@@ -29,7 +29,7 @@ internal class Shade
         IsLoaded = false;
 
         // per-game hooks
-        GameUtils.OnHeroUpdate -= OnUpdate;
+        GameUtils.OnHeroUpdate -= OnHeroUpdate;
 
         // objects
         _spawnCooldown = null;
@@ -40,7 +40,7 @@ internal class Shade
         }
     }
 
-    private void OnUpdate()
+    private void OnHeroUpdate()
     {
         // some update event will still come after unload
         if (!IsLoaded) return;
