@@ -19,9 +19,8 @@ internal class Shade
         this.LogMod("Load()");
         IsLoaded = true;
 
-        // hooks
-        HookUtils.OnGameQuit += Unload; // don't unhook this in Unload()
-        HookUtils.OnHeroUpdate += OnUpdate;
+        // per-game hooks
+        GameUtils.OnHeroUpdate += OnUpdate;
     }
 
     internal void Unload()
@@ -29,8 +28,8 @@ internal class Shade
         this.LogMod("Unload()");
         IsLoaded = false;
 
-        // hooks
-        HookUtils.OnHeroUpdate -= OnUpdate;
+        // per-game hooks
+        GameUtils.OnHeroUpdate -= OnUpdate;
 
         // objects
         _spawnCooldown = null;

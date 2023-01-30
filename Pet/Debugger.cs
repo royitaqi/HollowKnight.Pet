@@ -62,20 +62,7 @@ namespace Pet
 
         private void EachHeroUpdate()
         {
-            if (KeyboardOverride.GetKeyDown(KeyCode.Alpha9))
-            {
-                if (!_shade.IsLoaded)
-                {
-                    _shade.Load();
-                }
-                else
-                {
-                    _shade.Unload();
-                }
-            }
         }
-
-        private Shade _shade = new();
         #endregion Playground
     }
 #endif

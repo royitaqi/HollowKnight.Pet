@@ -9,6 +9,7 @@ using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
+using Pet.Modules;
 
 namespace Pet
 {
@@ -70,11 +71,20 @@ namespace Pet
             // display
             ModDisplay.Instance = new ModDisplay();
 
-            // hooks
-            HookUtils.Load();
-
             // input overrides
             KeyboardOverride.Load();
+
+            // objects
+            _shade = new Shade();
+            if (GameUtils.IsInGame)
+            {
+                _shade.Load();
+            }
+
+            // hooks
+            GameUtils.Load();
+            GameUtils.GameLoaded += _shade.Load;
+            GameUtils.OnGameQuit += _shade.Unload;
 
 #if (DEBUG)
             // debugger
@@ -99,11 +109,17 @@ namespace Pet
             }
 #endif
 
+            // hooks
+            GameUtils.Unload();
+            GameUtils.GameLoaded -= _shade.Load;
+            GameUtils.OnGameQuit -= _shade.Unload;
+
+            // objects
+            _shade.Unload();
+            _shade = null;
+
             // input overrides
             KeyboardOverride.Unload();
-
-            // hooks
-            HookUtils.Unload();
 
             // display
             if (ModDisplay.Instance != null)
@@ -111,9 +127,9 @@ namespace Pet
                 ModDisplay.Instance.Destroy();
                 ModDisplay.Instance = null;
             }
-
-            // objects
         }
+
+        private Shade _shade;
 
         ///
         /// IGlobalSettings<GlobalData>
