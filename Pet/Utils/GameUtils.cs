@@ -21,6 +21,18 @@ internal static class GameUtils
         ModHooks.HeroUpdateHook -= ModHooks_HeroUpdateHook;
     }
 
+    internal static void CatchUpEvents()
+    {
+        if (IsInGame)
+        {
+            typeof(GameUtils).LogMod("Game has been loaded (this is a catch up event)");
+            _gameLoaded?.Invoke();
+
+            typeof(GameUtils).LogMod("Scene has been changed (this is a catch up event)");
+            _sceneChanged?.Invoke(null, USceneManager.GetActiveScene());
+        }
+    }
+
     #region system hooks
     private static void SceneManager_activeSceneChanged(Scene from, Scene to)
     {
@@ -32,7 +44,7 @@ internal static class GameUtils
             _gameLoaded?.Invoke();
         }
 
-        typeof(GameUtils).LogModDebug("Game has been loaded");
+        typeof(GameUtils).LogModDebug("Scene has been changed");
         _sceneChanged?.Invoke(from, to);
 
 
@@ -80,7 +92,7 @@ internal static class GameUtils
     }
     private static event Action _onGameQuit;
 
-    internal static event Action<Scene, Scene> SceneChanged
+    internal static event Action<Scene?, Scene> SceneChanged
     {
         add
         {
@@ -92,7 +104,7 @@ internal static class GameUtils
             _sceneChanged -= value;
         }
     }
-    private static event Action<Scene, Scene> _sceneChanged;
+    private static event Action<Scene?, Scene> _sceneChanged;
 
     internal static event Action OnHeroUpdate
     {

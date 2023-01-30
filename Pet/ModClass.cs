@@ -76,15 +76,12 @@ namespace Pet
 
             // objects
             _shade = new Shade();
-            if (GameUtils.IsInGame)
-            {
-                _shade.Load();
-            }
 
             // hooks
             GameUtils.Load();
             GameUtils.GameLoaded += _shade.Load;
             GameUtils.OnGameQuit += _shade.Unload;
+            GameUtils.CatchUpEvents();
 
 #if (DEBUG)
             // debugger
