@@ -197,9 +197,10 @@ internal class Shade
             playNewAnimation = true,
             newAnimationClip = "Fly",
             resetFrame = true,
-            fastAnimSpeed = 10,
+            fastAnimSpeed = 10f,
             fastAnimationClip = "Fly",
             normalAnimationClip = "Fly",
+            pauseBetweenAnimChange = 0.3f,
             flyingFast = false,
         });
 
