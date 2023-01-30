@@ -64,12 +64,18 @@ namespace Pet
         {
             if (KeyboardOverride.GetKeyDown(KeyCode.Alpha9))
             {
-                this.LogModDebug("Creating shade");
-                _shade = Shade.Create(HeroController.instance.transform.position + new Vector3(4, 4, 0));
+                if (!_shade.IsLoaded)
+                {
+                    _shade.Load();
+                }
+                else
+                {
+                    _shade.Unload();
+                }
             }
         }
 
-        GameObject _shade;
+        private Shade _shade = new();
         #endregion Playground
     }
 #endif

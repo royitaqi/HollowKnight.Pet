@@ -1,8 +1,8 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
+using Modding;
 using Pet.Utils;
 using SFCore.Utils;
-using System.Linq;
 using UnityEngine;
 using UObject = UnityEngine.Object;
 
@@ -10,50 +10,90 @@ namespace Pet.Modules;
 
 internal class Shade
 {
-    internal static GameObject Create(Vector3 position)
+    internal bool IsLoaded { get; set; }
+    private GameObject _shade;
+    private float? _spawnCooldown;
+
+    internal void Load()
+    {
+        this.LogMod("Load()");
+        IsLoaded = true;
+        ModHooks.HeroUpdateHook += OnUpdate;
+    }
+
+    internal void Unload()
+    {
+        this.LogMod("Unload()");
+        ModHooks.HeroUpdateHook -= OnUpdate;
+        IsLoaded = false;
+        Reset();
+    }
+
+    private void Reset()
+    {
+        this.LogModFine("Reset()");
+        _spawnCooldown = null;
+
+        if (_shade != null)
+        {
+            UObject.DestroyImmediate(_shade);
+            _shade = null;
+        }
+    }
+
+    private void OnUpdate()
+    {
+        // some update event will still come after unload
+        if (!IsLoaded) return;
+
+        // not in a game
+        if (GameManager.instance == null || HeroController.instance == null)
+        {
+            Reset();
+            return;
+        }
+
+        this.LogModFine($"OnUpdate(): _shade = {_shade?.GetInstanceID().ToString() ?? "null"}, _spawnCooldown = {(_spawnCooldown == null ? "null" : (((int)(_spawnCooldown.Value - GameManager.instance.PlayTime)).ToString() + "->0"))}");
+
+        // we have a shade running
+        if (_shade != null) return;
+
+        // no shade and cooldown is met
+        if (_spawnCooldown == null || GameManager.instance.PlayTime >= _spawnCooldown.Value)
+        {
+            _shade = Create(HeroController.instance.transform.position);
+            _spawnCooldown = null;
+        }
+    }
+
+    private GameObject Create(Vector3 position)
     {
         typeof(Shade).LogModDebug("Creating shade");
 
         var go = GoUtils.GetGameObjectFromResources("Hollow Shade");
         var shade = GameObject.Instantiate(go);
         GameObject.DontDestroyOnLoad(shade);
-        shade.transform.position = position;
-        shade.transform.SetScaleMatching(0.5f);
         shade.Find("Shade Particles").GetComponent<ParticleSystem>().scalingMode = ParticleSystemScalingMode.Hierarchy;
         shade.GetComponent<AudioSource>().enabled = false;
         shade.RemoveComponents<HealthManager>();
+        shade.RemoveComponents<DamageHero>();
+        shade.transform.SetScaleMatching(0.5f);
+        shade.transform.position = position;
 
         ModifyShadeFsm(shade);
 
         typeof(Shade).LogModDebug("Shade created and actions added");
 
-        //shade.RemoveComponents<SetParticleScale>();
-        //var ps = shade.AddComponent<SetParticleScale>();
-
-        //typeof(Shade).LogModDebug("Removing shade's fsm");
-        //RemoveShadeFsm(shade);
-
-        //typeof(Shade).LogModDebug("Getting grimmchild's fsm");
-        //var fsm = GetGrimmchildFsm();
-        //var fsm = GetWeaverlingFsm();
-
-        //typeof(Shade).LogModDebug("Adding grimmchild's fsm into shade");
-        //var newFsm = shade.AddComponent(fsm);
-        //foreach (var s in newFsm.FsmStates)
-        //{
-        //    s.Fsm = newFsm.Fsm;
-        //}
-        //typeof(Shade).LogModDebug("Done");
-
         return shade;
     }
 
-    private static void ModifyShadeFsm(GameObject shade)
+    private void ModifyShadeFsm(GameObject shade)
     {
         var fsm = shade.GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Shade Control");
         var change = fsm.AddState("Pet Change");
         var follow = fsm.AddState("Pet Follow");
         var tele = fsm.AddState("Pet Tele");
+        var killed = fsm.GetState("Killed");
         fsm.AddTransition("Friendly Idle", "FINISHED", "Pet Change");
         fsm.AddTransition("Pet Change", "FINISHED", "Pet Follow");
         fsm.AddTransition("Pet Follow", "FINISHED", "Pet Change");
@@ -298,63 +338,27 @@ internal class Shade
         });
 
         tele.AddAction(new NextFrameEvent());
-    }
 
-    private static void RemoveShadeFsm(GameObject shade)
-    {
-        //shade.RemoveComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Shade Control");
-        foreach (var c in shade.GetComponents<PlayMakerFSM>())
+        // --- Killed
+
+        killed.Insert(new FsmUtils.InsertParam
         {
-            UObject.DestroyImmediate(c);
-        }
+            Method = () =>
+            {
+                _shade = null;
+                if (GameManager.instance != null)
+                {
+                    _spawnCooldown = GameManager.instance.PlayTime + 2f;
+                    this.LogModDebug($"Shade dying. Planned respawn in 2 seconds.");
+                }
+                else
+                {
+                    _spawnCooldown = null;
+                    this.LogModDebug($"Shade dying. No respawn is planned (GameManager.instance == null).");
+                }
+            },
+            Named = "Pet Plan Respawn",
+            Before = typeof(DestroySelf),
+        });
     }
-
-    private static PlayMakerFSM GetGrimmchildFsm()
-    {
-        var go = GoUtils.GetGameObjectFromResources("Grimmchild");
-        var fsm = go.GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Control");
-        return fsm;
-    }
-
-    private static PlayMakerFSM GetWeaverlingFsm()
-    {
-        var go = GoUtils.GetGameObjectFromResources("Weaverling");
-        var fsm = go.GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Control");
-        return fsm;
-    }
-
-    // "Hollow Shade"
-    // "Grimmchild-Control"
-
-    //GameObject Create(Vector2 position)
-    //{
-    //    foreach (var pfsm in aspid.GetComponentsInChildren<PlayMakerFSM>())
-    //    {
-    //        pfsm.SetState(pfsm.Fsm.StartState);
-    //    }
-    //    GameObject NewAspid = GameObject.Instantiate(aspid);
-    //    NewAspid.SetActive(true);
-    //    NewAspid.SetActiveChildren(true);
-    //    List<GameObject> AspidChildren = GetChildren(NewAspid);
-    //    foreach (var child in AspidChildren)
-    //    {
-    //        if (child.name == "Alert Range New")
-    //            child.GetComponent<CircleCollider2D>().radius = 15;
-    //        if (child.name == "Unalert Range")
-    //            child.GetComponent<CircleCollider2D>().radius = 25;
-    //    }
-    //    HealthManager AspidHP = NewAspid.GetComponent<HealthManager>();
-    //    if (!stngs.enemysoul)
-    //        SetEnemyType(AspidHP, 3); // setting it to 3 or 6 disables soul gain
-    //    AspidHP.hp = int.MaxValue;
-
-    //    var aspidZ = NewAspid.transform.position.z;
-    //    NewAspid.transform.position = new Vector3(position.x, position.y, aspidZ);
-
-    //    var xscale = NewAspid.transform.GetScaleX();
-    //    var yscale = NewAspid.transform.GetScaleY();
-    //    NewAspid.transform.SetScaleX(xscale * stngs.scaler);
-    //    NewAspid.transform.SetScaleY(yscale * stngs.scaler);
-    //    return NewAspid;
-    //}
 }
