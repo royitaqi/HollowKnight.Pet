@@ -76,11 +76,14 @@ namespace Pet
 
             // objects
             _shade = new Shade();
+            _lantern = new Lantern();
 
             // hooks
             GameUtils.Load();
             GameUtils.GameLoaded += _shade.Load;
+            GameUtils.GameLoaded += _lantern.Load;
             GameUtils.OnGameQuit += _shade.Unload;
+            GameUtils.OnGameQuit += _lantern.Unload;
             GameUtils.CatchUpEvents();
 
 #if (DEBUG)
@@ -109,11 +112,15 @@ namespace Pet
             // hooks
             GameUtils.Unload();
             GameUtils.GameLoaded -= _shade.Load;
+            GameUtils.GameLoaded -= _lantern.Load;
             GameUtils.OnGameQuit -= _shade.Unload;
+            GameUtils.OnGameQuit -= _lantern.Unload;
 
             // objects
             _shade.Unload();
             _shade = null;
+            _lantern.Unload();
+            _lantern = null;
 
             // input overrides
             KeyboardOverride.Unload();
@@ -127,6 +134,7 @@ namespace Pet
         }
 
         private Shade _shade;
+        private Lantern _lantern;
 
         ///
         /// IGlobalSettings<GlobalData>

@@ -13,12 +13,14 @@ internal static class GameUtils
     {
         USceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
         ModHooks.HeroUpdateHook += ModHooks_HeroUpdateHook;
+        On.PlayMakerFSM.Start += PlayMakerFSM_Start;
     }
 
     internal static void Unload()
     {
         USceneManager.activeSceneChanged -= SceneManager_activeSceneChanged;
         ModHooks.HeroUpdateHook -= ModHooks_HeroUpdateHook;
+        On.PlayMakerFSM.Start -= PlayMakerFSM_Start;
     }
 
     internal static void CatchUpEvents()
@@ -44,7 +46,7 @@ internal static class GameUtils
             _gameLoaded?.Invoke();
         }
 
-        typeof(GameUtils).LogModDebug("Scene has been changed");
+        typeof(GameUtils).LogModDebug($"Scene has been changed from \"{from.name}\" to \"{to.name})\"");
         _sceneChanged?.Invoke(from, to);
 
 
@@ -60,6 +62,12 @@ internal static class GameUtils
     {
         typeof(GameUtils).LogModFine("Hero is being updated");
         _onHeroUpdate?.Invoke();
+    }
+
+    private static void PlayMakerFSM_Start(On.PlayMakerFSM.orig_Start orig, PlayMakerFSM fsm)
+    {
+        typeof(GameUtils).LogModFine($"FSM \"{fsm.name}-{fsm.FsmName}\" is being started");
+        _onFsmStart?.Invoke(fsm);
     }
     #endregion system hooks
 
@@ -119,6 +127,20 @@ internal static class GameUtils
         }
     }
     private static event Action _onHeroUpdate;
+
+    internal static event Action<PlayMakerFSM> OnFsmStart
+    {
+        add
+        {
+            _onFsmStart -= value;
+            _onFsmStart += value;
+        }
+        remove
+        {
+            _onFsmStart -= value;
+        }
+    }
+    private static event Action<PlayMakerFSM> _onFsmStart;
     #endregion my hooks
 
     internal static bool IsInGame => GameManager.instance.IsGameplayScene();
