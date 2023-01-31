@@ -21,6 +21,7 @@ internal class Shade
 
         // per-game hooks
         GameUtils.OnHeroUpdate += OnHeroUpdate;
+        HookKnightFocus();
     }
 
     internal void Unload()
@@ -30,6 +31,7 @@ internal class Shade
 
         // per-game hooks
         GameUtils.OnHeroUpdate -= OnHeroUpdate;
+        UnhookKnightFocus();
 
         // objects
         _spawnCooldown = null;
@@ -362,5 +364,29 @@ internal class Shade
             Named = "Pet Plan Respawn",
             Before = typeof(DestroySelf),
         });
+    }
+
+    private PlayMakerFSM GetKnightFocusFsm()
+    {
+        return HeroController.instance.gameObject.GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Spell Control");
+    }
+
+    private void HookKnightFocus()
+    {
+        var fsm = GetKnightFocusFsm();
+        var focus = fsm.AddState("Pet Focus");
+        focus.AddMethod(() =>
+        {
+            _shade?.GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Shade Control")?.SendEvent("ZERO HP");
+        });
+        fsm.ChangeTransition("Focus", "FOCUS COMPLETED", "Pet Focus");
+        fsm.AddTransition("Pet Focus", "FINISHED", "Spore Cloud");
+    }
+
+    private void UnhookKnightFocus()
+    {
+        var fsm = GetKnightFocusFsm();
+        fsm.ChangeTransition("Focus", "FOCUS COMPLETED", "Spore Cloud");
+        fsm.RemoveState("Pet Focus");
     }
 }
