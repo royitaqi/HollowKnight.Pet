@@ -43,21 +43,21 @@ namespace Pet
         #region Playground
         private void EachFsmAtStart(PlayMakerFSM fsm)
         {
-            var isKnightDreamNail = (PlayMakerFSM fsm) => fsm is
-            {
-                name: "Knight",
-                FsmName: "Dream Nail",
-            };
+            //var isKnightDreamNail = (PlayMakerFSM fsm) => fsm is
+            //{
+            //    name: "Knight",
+            //    FsmName: "Dream Nail",
+            //};
 
-            var isShadeControl = (PlayMakerFSM fsm) =>
-                (fsm.name == "Hollow Shade" || fsm.name == "Hollow Shade(Clone)" || fsm.name == "Grimmchild" || fsm.name == "Grimmchild(Clone)")
-                && (fsm.FsmName == "Shade Control" || fsm.FsmName == "Control");
+            //var isShadeControl = (PlayMakerFSM fsm) =>
+            //    (fsm.name == "Hollow Shade" || fsm.name == "Hollow Shade(Clone)" || fsm.name == "Grimmchild" || fsm.name == "Grimmchild(Clone)")
+            //    && (fsm.FsmName == "Shade Control" || fsm.FsmName == "Control");
 
-            if (isKnightDreamNail(fsm) || isShadeControl(fsm))
-            {
-                this.LogModDebug($"Hooked FSM: {fsm.name}-{fsm.FsmName}");
-                fsm.MakeLog(true);
-            }
+            //if (isKnightDreamNail(fsm) || isShadeControl(fsm))
+            //{
+            //    this.LogModDebug($"Hooked FSM: {fsm.name}-{fsm.FsmName}");
+            //    fsm.MakeLog(true);
+            //}
         }
 
         private void EachHeroUpdate()
