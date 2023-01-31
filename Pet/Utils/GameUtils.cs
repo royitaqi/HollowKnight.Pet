@@ -14,6 +14,7 @@ internal static class GameUtils
         USceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
         ModHooks.HeroUpdateHook += ModHooks_HeroUpdateHook;
         On.PlayMakerFSM.Start += PlayMakerFSM_Start;
+        ModHooks.BeforeSceneLoadHook += ModHooks_BeforeSceneLoadHook;
     }
 
     internal static void Unload()
@@ -21,6 +22,7 @@ internal static class GameUtils
         USceneManager.activeSceneChanged -= SceneManager_activeSceneChanged;
         ModHooks.HeroUpdateHook -= ModHooks_HeroUpdateHook;
         On.PlayMakerFSM.Start -= PlayMakerFSM_Start;
+        ModHooks.BeforeSceneLoadHook -= ModHooks_BeforeSceneLoadHook;
     }
 
     internal static void CatchUpEvents()
@@ -38,8 +40,6 @@ internal static class GameUtils
     #region system hooks
     private static void SceneManager_activeSceneChanged(Scene from, Scene to)
     {
-        typeof(GameUtils).LogModDebug($"SceneManager_activeSceneChanged(from = {from.name}, to = {to.name})");
-
         if (from.name == "Menu_Title")
         {
             typeof(GameUtils).LogMod("Game has been loaded");
@@ -48,7 +48,6 @@ internal static class GameUtils
 
         typeof(GameUtils).LogModDebug($"Scene has been changed from \"{from.name}\" to \"{to.name})\"");
         _sceneChanged?.Invoke(from, to);
-
 
         // This triggers about 5ms earlier than `On.QuitToMenu.Start`.
         if (to.name == "Quit_To_Menu")
@@ -68,6 +67,13 @@ internal static class GameUtils
     {
         typeof(GameUtils).LogModFine($"FSM \"{fsm.name}-{fsm.FsmName}\" is being started");
         _onFsmStart?.Invoke(fsm);
+    }
+
+    private static string ModHooks_BeforeSceneLoadHook(string maybeScene)
+    {
+        typeof(GameUtils).LogModDebug($"Scene is being changed");
+        _onSceneChange?.Invoke();
+        return maybeScene;
     }
     #endregion system hooks
 
@@ -99,6 +105,20 @@ internal static class GameUtils
         }
     }
     private static event Action _onGameQuit;
+
+    internal static event Action OnSceneChange
+    {
+        add
+        {
+            _onSceneChange -= value;
+            _onSceneChange += value;
+        }
+        remove
+        {
+            _onSceneChange -= value;
+        }
+    }
+    private static event Action _onSceneChange;
 
     internal static event Action<Scene?, Scene> SceneChanged
     {

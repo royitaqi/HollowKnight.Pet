@@ -65,7 +65,7 @@ namespace Pet
             // logger
             Instance = this;
             LoggingUtils.LoggingFunction = this.Log;
-            LoggingUtils.LogLevel = LogLevel.Fine;
+            LoggingUtils.LogLevel = LogLevel.Debug;
             LoggingUtils.FilterFunction = LoggingUtils.DontRepeatWithin1s;
 
             // display

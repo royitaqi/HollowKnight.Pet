@@ -317,7 +317,8 @@ internal class Shade
             float1 = awayTimer,
             float2 = 2f,
             tolerance = 0f,
-            greaterThan = FsmEvent.GetFsmEvent("ZERO HP"), // FsmEvent.GetFsmEvent("TELE"),
+            //greaterThan = FsmEvent.GetFsmEvent("ZERO HP"),
+            greaterThan = FsmEvent.GetFsmEvent("TELE"),
             everyFrame = true,
         });
 
@@ -333,6 +334,7 @@ internal class Shade
 
         tele.AddMethod(() =>
         {
+            this.LogModDebug($"Shade is too far away from hero. Teleporting ...");
             var pos = HeroController.instance.transform.position;
             shade.transform.position = pos;
         });
