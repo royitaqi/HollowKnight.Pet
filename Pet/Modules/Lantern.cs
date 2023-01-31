@@ -29,19 +29,18 @@ internal class Lantern
 
     private void GameUtils_OnFsmStart(PlayMakerFSM fsm)
     {
+        // Mines_33 (272)
         if (IsLoaded && fsm.FsmName == "Disable if No Lantern")
         {
             this.LogMod($"Unlocking toll gate machine in dark room");
-            fsm.GetState("Check").Insert(new FsmUtils.InsertParam
-            {
-                Action = new SendEvent
-                {
-                    eventTarget = Self,
-                    sendEvent = FsmEvent.Finished,
-                },
-                Named = "Pet Unlock Toll Gate Machine",
-                Before = typeof(PlayerDataBoolTest),
-            });
+            fsm.GetState("Check").RemoveAction(0);
+        }
+
+        // Fungus1_35 (161)
+        if (IsLoaded && fsm.FsmName == "Deactivate in darkness without lantern")
+        {
+            this.LogMod($"Unlocking area title for Stone Sanctuary");
+            fsm.GetState("Lantern?").RemoveAction(0);
         }
     }
 
