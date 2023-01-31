@@ -15,6 +15,7 @@ internal static class GameUtils
         ModHooks.HeroUpdateHook += ModHooks_HeroUpdateHook;
         On.PlayMakerFSM.Start += PlayMakerFSM_Start;
         ModHooks.BeforeSceneLoadHook += ModHooks_BeforeSceneLoadHook;
+        On.HeroController.Awake += HeroController_Awake;
     }
 
     internal static void Unload()
@@ -23,6 +24,7 @@ internal static class GameUtils
         ModHooks.HeroUpdateHook -= ModHooks_HeroUpdateHook;
         On.PlayMakerFSM.Start -= PlayMakerFSM_Start;
         ModHooks.BeforeSceneLoadHook -= ModHooks_BeforeSceneLoadHook;
+        On.HeroController.Awake -= HeroController_Awake;
     }
 
     internal static void CatchUpEvents()
@@ -42,11 +44,11 @@ internal static class GameUtils
     {
         if (from.name == "Menu_Title")
         {
-            typeof(GameUtils).LogMod("Game has been loaded");
-            _gameLoaded?.Invoke();
+            _gameLoadedScene = true;
+            MaybeRaiseGameLoaded();
         }
 
-        typeof(GameUtils).LogModDebug($"Scene has been changed from \"{from.name}\" to \"{to.name})\"");
+        typeof(GameUtils).LogModDebug($"Scene has been changed from \"{from.name}\" to \"{to.name}\"");
         _sceneChanged?.Invoke(from, to);
 
         // This triggers about 5ms earlier than `On.QuitToMenu.Start`.
@@ -75,7 +77,33 @@ internal static class GameUtils
         _onSceneChange?.Invoke();
         return maybeScene;
     }
+
+    private static void HeroController_Awake(On.HeroController.orig_Awake orig, HeroController self)
+    {
+        typeof(GameUtils).LogModDebug($"Hero controller is awaken");
+        orig(self);
+
+        _gameLoadedHero = true;
+        MaybeRaiseGameLoaded();
+    }
     #endregion system hooks
+
+    // Both events can come in different order in different scenarios:
+    //   - When starting a new game, scene is activated before hero controller instance is created.
+    //   - When loading an existing game, hero controller instance is created before scene is activated.
+    // So here we log both's readiness and only consider the game loaded when both are ready.
+    private static void MaybeRaiseGameLoaded()
+    {
+        if (_gameLoadedScene && _gameLoadedHero)
+        {
+            _gameLoadedHero = false;
+            _gameLoadedScene = false;
+            typeof(GameUtils).LogMod("Game has been loaded");
+            _gameLoaded?.Invoke();
+        }
+    }
+    private static bool _gameLoadedScene;
+    private static bool _gameLoadedHero;
 
     #region my hooks
     internal static event Action GameLoaded
