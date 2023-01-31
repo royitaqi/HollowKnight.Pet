@@ -14,9 +14,10 @@ namespace Pet
             _menuRef = new Menu(Instance.Name, new Element[]
             {
                 toggle!.Value.CreateToggle(
-                    "Mod",
-                    "Enter a new fight to apply change"
+                    "Shade",
+                    "A small pet, usually given to new players ..."
                 ),
+#if DEBUG
                 new HorizontalOption(
                     "Fade Bottom Left Display",
                     "Press \"0\" on main keyboard to bring up the display",
@@ -27,7 +28,6 @@ namespace Pet
                     },
                     () => Pet.Instance.GlobalData.FadeDisplay ? 1 : 0
                 ),
-#if DEBUG
                 new MenuButton(
                     "DEBUG: Move & Resize Display",
                     "",
