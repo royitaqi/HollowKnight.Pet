@@ -29,18 +29,25 @@ internal class Lantern
 
     private void GameUtils_OnFsmStart(PlayMakerFSM fsm)
     {
+        if (!IsLoaded) return;
+
         // Mines_33 (272)
-        if (IsLoaded && fsm.FsmName == "Disable if No Lantern")
+        if (fsm.FsmName == "Disable if No Lantern")
         {
             this.LogMod($"Unlocking toll gate machine in dark room");
             fsm.GetState("Check").RemoveAction(0);
         }
 
         // Fungus1_35 (161)
-        if (IsLoaded && fsm.FsmName == "Deactivate in darkness without lantern")
+        if (fsm.FsmName == "Deactivate in darkness without lantern")
         {
             this.LogMod($"Unlocking area title for Stone Sanctuary");
             fsm.GetState("Lantern?").RemoveAction(0);
+        }
+        if (fsm.name == "Ghost Warrior NPC" && fsm.FsmName == "FSM")
+        {
+            this.LogMod($"Unlocking No Eyes");
+            fsm.GetState("Check").RemoveAction(0);
         }
     }
 
