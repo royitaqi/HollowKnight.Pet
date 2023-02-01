@@ -27,7 +27,7 @@ internal class Lantern
         this.LogMod("Unload()");
         IsLoaded = false;
 
-        // set up as if hero has lantern
+        // recover
         ModHooks.GetPlayerBoolHook -= ModHooks_GetPlayerBoolHook;
     }
 
@@ -35,7 +35,7 @@ internal class Lantern
     {
         if (name == "hasLantern")
         {
-            return IsLoaded;
+            return orig || IsLoaded;
         }
         return orig;
     }
