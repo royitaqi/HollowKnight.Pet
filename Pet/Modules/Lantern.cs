@@ -27,6 +27,25 @@ internal class Lantern
         GameUtils.OnFsmStart += GameUtils_OnFsmStart;
     }
 
+    internal void Unload()
+    {
+        if (!IsLoaded) return;
+
+        this.LogMod("Unload()");
+        IsLoaded = false;
+
+        // recover setup
+        var fsm = VignetteFsm;
+        fsm.ChangeTransition("Dark Lev Check", "DARK 1", "Dark 1");
+        fsm.ChangeTransition("Dark Lev Check", "DARK 2", "Dark 2");
+        fsm.ChangeTransition("Scene Reset", "DARK 1", "Dark 1 2");
+        fsm.ChangeTransition("Scene Reset", "DARK 2", "Dark 2 2");
+        fsm.ChangeTransition("Scene Reset 2", "DARK 1", "Dark 1 2");
+        fsm.ChangeTransition("Scene Reset 2", "DARK 2", "Dark 2 2");
+
+        GameUtils.OnFsmStart -= GameUtils_OnFsmStart;
+    }
+
     private void GameUtils_OnFsmStart(PlayMakerFSM fsm)
     {
         if (!IsLoaded) return;
@@ -49,23 +68,6 @@ internal class Lantern
             this.LogMod($"Unlocking No Eyes");
             fsm.GetState("Check").RemoveAction(0);
         }
-    }
-
-    internal void Unload()
-    {
-        this.LogMod("Unload()");
-        IsLoaded = false;
-
-        // recover setup
-        var fsm = VignetteFsm;
-        fsm.ChangeTransition("Dark Lev Check", "DARK 1", "Dark 1");
-        fsm.ChangeTransition("Dark Lev Check", "DARK 2", "Dark 2");
-        fsm.ChangeTransition("Scene Reset", "DARK 1", "Dark 1 2");
-        fsm.ChangeTransition("Scene Reset", "DARK 2", "Dark 2 2");
-        fsm.ChangeTransition("Scene Reset 2", "DARK 1", "Dark 1 2");
-        fsm.ChangeTransition("Scene Reset 2", "DARK 2", "Dark 2 2");
-
-        GameUtils.OnFsmStart -= GameUtils_OnFsmStart;
     }
 
     private PlayMakerFSM VignetteFsm => HeroController.instance.gameObject.Find("Vignette").GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Darkness Control");

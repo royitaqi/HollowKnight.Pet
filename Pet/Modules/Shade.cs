@@ -26,6 +26,8 @@ internal class Shade
 
     internal void Unload()
     {
+        if (!IsLoaded) return;
+
         this.LogMod("Unload()");
         IsLoaded = false;
 
