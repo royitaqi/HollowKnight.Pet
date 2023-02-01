@@ -1,5 +1,6 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
+using Modding;
 using Pet.Utils;
 using SFCore.Utils;
 using static HutongGames.PlayMaker.FsmEventTarget;
@@ -16,15 +17,7 @@ internal class Lantern
         IsLoaded = true;
 
         // set up as if hero has lantern
-        var fsm = VignetteFsm;
-        fsm.ChangeTransition("Dark Lev Check", "DARK 1", "Lantern");
-        fsm.ChangeTransition("Dark Lev Check", "DARK 2", "Lantern");
-        fsm.ChangeTransition("Scene Reset", "DARK 1", "Lantern 2");
-        fsm.ChangeTransition("Scene Reset", "DARK 2", "Lantern 2");
-        fsm.ChangeTransition("Scene Reset 2", "DARK 1", "Lantern 2");
-        fsm.ChangeTransition("Scene Reset 2", "DARK 2", "Lantern 2");
-
-        GameUtils.OnFsmStart += GameUtils_OnFsmStart;
+        ModHooks.GetPlayerBoolHook += ModHooks_GetPlayerBoolHook;
     }
 
     internal void Unload()
@@ -34,41 +27,16 @@ internal class Lantern
         this.LogMod("Unload()");
         IsLoaded = false;
 
-        // recover setup
-        var fsm = VignetteFsm;
-        fsm.ChangeTransition("Dark Lev Check", "DARK 1", "Dark 1");
-        fsm.ChangeTransition("Dark Lev Check", "DARK 2", "Dark 2");
-        fsm.ChangeTransition("Scene Reset", "DARK 1", "Dark 1 2");
-        fsm.ChangeTransition("Scene Reset", "DARK 2", "Dark 2 2");
-        fsm.ChangeTransition("Scene Reset 2", "DARK 1", "Dark 1 2");
-        fsm.ChangeTransition("Scene Reset 2", "DARK 2", "Dark 2 2");
-
-        GameUtils.OnFsmStart -= GameUtils_OnFsmStart;
+        // set up as if hero has lantern
+        ModHooks.GetPlayerBoolHook -= ModHooks_GetPlayerBoolHook;
     }
 
-    private void GameUtils_OnFsmStart(PlayMakerFSM fsm)
+    private bool ModHooks_GetPlayerBoolHook(string name, bool orig)
     {
-        if (!IsLoaded) return;
-
-        // Mines_33 (272)
-        if (fsm.FsmName == "Disable if No Lantern")
+        if (name == "hasLantern")
         {
-            this.LogMod($"Unlocking toll gate machine in dark room");
-            fsm.GetState("Check").RemoveAction(0);
+            return IsLoaded;
         }
-
-        // Fungus1_35 (161)
-        if (fsm.FsmName == "Deactivate in darkness without lantern")
-        {
-            this.LogMod($"Unlocking area title for Stone Sanctuary");
-            fsm.GetState("Lantern?").RemoveAction(0);
-        }
-        if (fsm.name == "Ghost Warrior NPC" && fsm.FsmName == "FSM")
-        {
-            this.LogMod($"Unlocking No Eyes");
-            fsm.GetState("Check").RemoveAction(0);
-        }
+        return orig;
     }
-
-    private PlayMakerFSM VignetteFsm => HeroController.instance.gameObject.Find("Vignette").GetComponent<PlayMakerFSM>(fsm => fsm.FsmName == "Darkness Control");
 }
