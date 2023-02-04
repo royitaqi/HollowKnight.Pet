@@ -69,6 +69,7 @@ internal static class GameUtils
     {
         typeof(GameUtils).LogModFine($"FSM \"{fsm.name}-{fsm.FsmName}\" is being started");
         _onFsmStart?.Invoke(fsm);
+        orig(fsm);
     }
 
     private static string ModHooks_BeforeSceneLoadHook(string maybeScene)
