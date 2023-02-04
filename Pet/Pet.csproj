@@ -26,6 +26,11 @@
     <RemoveDir Condition="Exists('$(HollowKnightRefs)/Mods/$(TargetName)_Debug/')" Directories="$(HollowKnightRefs)/Mods/$(TargetName)_Debug/" />
     <RemoveDir Condition="Exists('$(HollowKnightRefs)/Mods/$(TargetName)_Release/')" Directories="$(HollowKnightRefs)/Mods/$(TargetName)_Release/" />
     <RemoveDir Condition="Exists('$(ExportDir)/')" Directories="$(ExportDir)/" />
+    <!-- Disable prod mod if installed and enabled. -->
+    <Move Condition="Exists('$(HollowKnightRefs)/Mods/$(TargetName)/')" SourceFiles="$(HollowKnightRefs)/Mods/$(TargetName)/$(TargetName).dll" DestinationFolder="$(HollowKnightRefs)/Mods/Disabled/$(TargetName)/" />
+    <Move Condition="Exists('$(HollowKnightRefs)/Mods/$(TargetName)/')" SourceFiles="$(HollowKnightRefs)/Mods/$(TargetName)/$(TargetName).pdb" DestinationFolder="$(HollowKnightRefs)/Mods/Disabled/$(TargetName)/" />
+    <Move Condition="Exists('$(HollowKnightRefs)/Mods/$(TargetName)/')" SourceFiles="$(HollowKnightRefs)/Mods/$(TargetName)/README.md" DestinationFolder="$(HollowKnightRefs)/Mods/Disabled/$(TargetName)/" />
+    <RemoveDir Condition="Exists('$(HollowKnightRefs)/Mods/$(TargetName)/')" Directories="$(HollowKnightRefs)/Mods/$(TargetName)/" />
   </Target>
 
   <Target Name="CopyModToGame" AfterTargets="ClearModAndExportDir">
