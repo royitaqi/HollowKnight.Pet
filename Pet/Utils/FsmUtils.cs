@@ -35,7 +35,6 @@ namespace Pet.Utils
             return state.Actions.Select((a, i) => new { a, i }).First(ai => ai.a.GetType() == actionType).i;
         }
 
-
         internal class InsertParam
         {
             // what to insert

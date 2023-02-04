@@ -19,6 +19,11 @@ internal static class GoUtils
         return GetFromResources<GameObject>(go => go.name == name);
     }
 
+    public static PlayMakerFSM GetFsmFromResources(string goName, string fsmName)
+    {
+        return GetFromResources<PlayMakerFSM>(fsm => fsm.name == goName && fsm.FsmName == fsmName);
+    }
+
     public static T AddComponent<T>(this GameObject go, T component) where T : Component
     {
         T c = go.AddComponent<T>();

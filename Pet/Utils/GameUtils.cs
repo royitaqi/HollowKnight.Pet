@@ -14,6 +14,7 @@ internal static class GameUtils
         USceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
         ModHooks.HeroUpdateHook += ModHooks_HeroUpdateHook;
         On.PlayMakerFSM.Start += PlayMakerFSM_Start;
+        On.PlayMakerFSM.OnEnable += PlayMakerFSM_OnEnable;
         ModHooks.BeforeSceneLoadHook += ModHooks_BeforeSceneLoadHook;
         On.HeroController.Awake += HeroController_Awake;
     }
@@ -23,6 +24,7 @@ internal static class GameUtils
         USceneManager.activeSceneChanged -= SceneManager_activeSceneChanged;
         ModHooks.HeroUpdateHook -= ModHooks_HeroUpdateHook;
         On.PlayMakerFSM.Start -= PlayMakerFSM_Start;
+        On.PlayMakerFSM.OnEnable -= PlayMakerFSM_OnEnable;
         ModHooks.BeforeSceneLoadHook -= ModHooks_BeforeSceneLoadHook;
         On.HeroController.Awake -= HeroController_Awake;
     }
@@ -69,6 +71,13 @@ internal static class GameUtils
     {
         typeof(GameUtils).LogModFine($"FSM \"{fsm.name}-{fsm.FsmName}\" is being started");
         _onFsmStart?.Invoke(fsm);
+        orig(fsm);
+    }
+
+    private static void PlayMakerFSM_OnEnable(On.PlayMakerFSM.orig_OnEnable orig, PlayMakerFSM fsm)
+    {
+        typeof(GameUtils).LogModFine($"FSM \"{fsm.name}-{fsm.FsmName}\" is being enabled");
+        _onFsmEnable?.Invoke(fsm);
         orig(fsm);
     }
 
@@ -190,6 +199,20 @@ internal static class GameUtils
         }
     }
     private static event Action<PlayMakerFSM> _onFsmStart;
+
+    internal static event Action<PlayMakerFSM> OnFsmEnable
+    {
+        add
+        {
+            _onFsmEnable -= value;
+            _onFsmEnable += value;
+        }
+        remove
+        {
+            _onFsmEnable -= value;
+        }
+    }
+    private static event Action<PlayMakerFSM> _onFsmEnable;
     #endregion my hooks
 
     internal static bool IsInGame => GameManager.instance.IsGameplayScene();
