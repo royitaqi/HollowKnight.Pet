@@ -35,6 +35,21 @@ namespace Pet.Utils
             return state.Actions.Select((a, i) => new { a, i }).First(ai => ai.a.GetType() == actionType).i;
         }
 
+        public static int FindActionIndexByType<T>(this FsmState state)
+        {
+            return FindActionIndexByType(state, typeof(T));
+        }
+
+        public static FsmStateAction GetActionByType(this FsmState state, Type actionType)
+        {
+            return state.Actions.First(a => a.GetType() == actionType);
+        }
+
+        public static FsmStateAction GetActionByType<T>(this FsmState state)
+        {
+            return GetActionByType(state, typeof(T));
+        }
+
         internal class InsertParam
         {
             // what to insert
